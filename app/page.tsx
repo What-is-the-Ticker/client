@@ -1,4 +1,7 @@
+'use client';
+
 import Image from "next/image";
+import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Home() {
   return (
@@ -43,6 +46,9 @@ export default function Home() {
           loading="eager"
         />
       </div>
+
+      <WalletMultiButton />
+      <WalletDisconnectButton />
 
       <div
         className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4

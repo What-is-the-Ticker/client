@@ -38,7 +38,7 @@ export const SideBar = React.memo(function SideBar({ logo, actions }: SideBarPro
       {/* Header Section with Toggle Button */}
       <div className="flex items-center justify-between h-14 px-4 border-b">
         <Link href="/" className="flex items-center space-x-2">
-          {(isExpanded || isMobileOpen) && <span className="font-bold w-36">MyApp</span>}
+          {(isExpanded || isMobileOpen) && <span className="font-bold w-36">WhatsTheTicker❓</span>}
         </Link>
         {/* Toggle Button (hidden on mobile) */}
         <Button

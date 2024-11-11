@@ -9,6 +9,7 @@ import BackgroundWrapper from "@/components/context/backgroundWrapper";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 // import 'react-toastify/dist/ReactToastify.min.css'; // minified version
+import SolanaWalletProvider from "@/components/context/solanaProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,11 +26,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Your App Name",
-  description: "A more detailed description of your app for SEO purposes",
+  title: "whatistheticker",
+  description: "whatistheticker",
   openGraph: {
-    title: "Your App Name",
-    description: "A brief description for social media sharing",
+    title: "whatistheticker",
+    description: "whatistheticker",
     images: [{ url: "/og-image.jpg" }],
   },
 };
@@ -58,14 +59,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemeProvider>
-            <BackgroundWrapper>
-              <ToastContainer />
-              <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                {/* <Header /> */}
-                <SideBar />
-                {children}
-              </main>
-            </BackgroundWrapper>
+            <SolanaWalletProvider>
+              <BackgroundWrapper>
+                <ToastContainer />
+                <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                  {/* <Header /> */}
+                  <SideBar />
+                  {children}
+                </main>
+              </BackgroundWrapper>
+            </SolanaWalletProvider>
           </ThemeProvider>
         </NextThemesProvider>
       </body>

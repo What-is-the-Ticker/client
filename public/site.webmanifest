@@ -1,8 +1,8 @@
 {
-  "name": "Llamavs",
-  "short_name": "Llamavs",
+  "name": "What is the Ticker",
+  "short_name": "What is the Ticker",
   "start_url": "/",
-  "description": "Short Description",
+  "description": "What is the ticker",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
