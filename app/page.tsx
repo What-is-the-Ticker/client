@@ -13,8 +13,19 @@ export default function Home() {
     setIsMinting(true);
     setMessage('Minting coin...');
 
+    const name = "test0"; //test
+    const symbol = "TST";
+    const description = "This is a dynamically generated meme coin.";
+
     try {
-      const response = await fetch('/api/mint', { method: 'POST' });
+      const response = await fetch('/api/mint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, symbol, description }),
+      });
+
       const result = await response.json();
 
       if (result.success) {
