@@ -1,30 +1,37 @@
 'use client';
 
 import Image from "next/image";
+import { useState } from "react";
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
 import TokenCreator from "@/components/TokenCreator";
 
 export default function Home() {
+  const [isMinting, setIsMinting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleMint = async () => {
+    setIsMinting(true);
+    setMessage('Minting coin...');
+
+    try {
+      const response = await fetch('/api/mint', { method: 'POST' });
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage(`Coin minted successfully! Mint Address: ${result.mintAddress}`);
+      } else {
+        setMessage(`Failed to mint the coin: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Minting failed:', error);
+      setMessage('Failed to mint the coin.');
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
   return (
     <main className="flex h-[90vh] flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p
-          className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300
-            bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl
-            dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static
-            lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30 text-primary"
-        >
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div
-          className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t
-            from-white via-white dark:from-black dark:via-black lg:static lg:size-auto
-            lg:bg-none gap-x-1"
-        >
-        </div>
-      </div>
-
       <div
         className="relative z-[-1] flex place-items-center before:absolute before:h-[300px]
           before:w-full before:-translate-x-1/2 before:rounded-full
@@ -51,99 +58,14 @@ export default function Home() {
       <WalletMultiButton />
       <WalletDisconnectButton />
 
-      <TokenCreator />
+      {/* <TokenCreator /> */}
 
-      <div
-        className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4
-          lg:text-left gap-x-2"
-      >
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border bg-card px-5 py-4 transition-colors
-            hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700
-            hover:dark:bg-neutral-800/30 dark:border-white dark:border-opacity-5"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold text-primary">
-            Docs{" "}
-            <span
-              className="inline-block transition-transform group-hover:translate-x-1
-                motion-reduce:transform-none"
-            >
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border bg-card px-5 py-4 transition-colors
-            hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700
-            hover:dark:bg-neutral-800/30 dark:border-white dark:border-opacity-5"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold text-primary">
-            Learn{" "}
-            <span
-              className="inline-block transition-transform group-hover:translate-x-1
-                motion-reduce:transform-none"
-            >
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border bg-card px-5 py-4 transition-colors
-            hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700
-            hover:dark:bg-neutral-800/30 dark:border-white dark:border-opacity-5"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold text-primary">
-            Templates{" "}
-            <span
-              className="inline-block transition-transform group-hover:translate-x-1
-                motion-reduce:transform-none"
-            >
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border bg-card px-5 py-4 transition-colors
-            hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700
-            hover:dark:bg-neutral-800/30 dark:border-white dark:border-opacity-5"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold text-primary">
-            Deploy{" "}
-            <span
-              className="inline-block transition-transform group-hover:translate-x-1
-                motion-reduce:transform-none"
-            >
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div>
+        <h1>Mint Your Meme Coin</h1>
+        <button onClick={handleMint} disabled={isMinting}>
+          {isMinting ? 'Minting...' : 'Mint Coin'}
+        </button>
+        <p>{message}</p>
       </div>
     </main>
   );
