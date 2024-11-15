@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { navItems } from '@/lib/navItems';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import localFont from 'next/font/local';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const alice = localFont({
   src: "../public/Alice-Regular.ttf",
@@ -47,6 +48,7 @@ export const Header = React.memo(function Header({ logo, actions }: HeaderProps)
             ))}
           </nav>
           <WalletMultiButton />
+          <ConnectButton />
         </div>
       </div>
     </header>

@@ -6,6 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { mintCoin } from "@/lib/solana/mint";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
+import Aggregator from "@/components/WalletAggregator";
 
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
@@ -97,10 +98,8 @@ export default function Home() {
         />
       </div>
 
-      <WalletMultiButton />
-      <WalletDisconnectButton />
-
-      <ConnectButton />
+      
+      <Aggregator />
 
       <div>
         <h1>Mint Your Meme Coin</h1>
