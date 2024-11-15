@@ -1,4 +1,4 @@
-type ThemeColors = "Zinc" | "Rose" | "Blue" | "Green" | "Orange"
+type ThemeColors = "Zinc" | "Rose" | "Blue" | "Green" | "Orange" | "Purple" | "Pink";
 
 interface ThemeColorStateParams {
   themeColor: ThemeColors;
