@@ -1,49 +1,68 @@
 'use client';
 
-import Image from "next/image";
 import { useState } from "react";
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { mintCoin } from "@/lib/solana/mint";
+import Image from "next/image";
 
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
   const [message, setMessage] = useState('');
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, wallet } = useWallet();
 
   // Hardcoded for now
   const tokenMetadata = {
-    name: 'Mama',
-    symbol: 'MEM',
+    name: 'Maaaaaaaaaaama',
+    symbol: 'MEMR',
     description: 'MAMEM',
   }
 
   const handleMint = async () => {
-    if (!publicKey) {
+    if (!publicKey || !wallet) {
       setMessage('Please connect your wallet');
       return;
     }
 
     setIsMinting(true);
-    setMessage('Minting coin...');
+    setMessage('Uploading metadata...');
 
     try {
-      const response = await fetch('/api/mint', {
+      // Upload metadata via server
+      const response = await fetch('/api/upload-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: tokenMetadata.name,
           symbol: tokenMetadata.symbol,
           description: tokenMetadata.description,
-          recipient: publicKey.toBase58()
         }),
       });
+
       const result = await response.json();
 
-      if (result.success) {
-        setMessage(`Coin minted successfully! Mint Address: ${result.mintAddress}`);
-      } else {
-        setMessage(`Failed to mint the coin: ${result.error}`);
+      if (!result.success) {
+        setMessage(`Failed to upload metadata: ${result.error}`);
+        return;
       }
+
+      const metadataUri = result.metadataUri;
+
+      // Prepare token metadata with the URI
+      const fullTokenMetadata = {
+        ...tokenMetadata,
+        uri: metadataUri,
+      };
+
+      // Mint the coin using the auxiliary function
+      const mintAddress = await mintCoin({
+        walletAdapter: wallet.adapter,
+        publicKey,
+        tokenMetadata: fullTokenMetadata,
+        amount: 1000000_00000000,
+      });
+
+      setMessage(`Coin minted successfully! Mint Address: ${mintAddress}`);
     } catch (error) {
       console.error('Minting failed:', error);
       setMessage('Failed to mint the coin.');

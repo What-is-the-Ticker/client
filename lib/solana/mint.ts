@@ -1,48 +1,47 @@
-// mint.ts
-import { percentAmount, generateSigner, signerIdentity, createSignerFromKeypair, Pda } from "@metaplex-foundation/umi";
-import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import secret from "@/lib/solana/guideSecret.json";
-import dotenv from "dotenv";
-import { PublicKey } from "@solana/web3.js";
+// src/lib/solana/mint.ts
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
+import { createAndMint, mplTokenMetadata, TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { generateSigner, percentAmount } from "@metaplex-foundation/umi";
+import { WalletAdapter } from '@solana/wallet-adapter-base';
+import { PublicKey } from '@solana/web3.js';
 
-dotenv.config();
-
-const endpoint = process.env.RPC_ENDPOINT;
-
-if (!endpoint) {
-  console.log(`RPC_ENDPOINT is missing from .env file`);
-  process.exit(1);
+interface MintCoinParams {
+  walletAdapter: WalletAdapter;
+  publicKey: PublicKey;
+  tokenMetadata: {
+    name: string;
+    symbol: string;
+    uri: string;
+  };
+  amount: number;
 }
 
-const umi = createUmi(endpoint);
-const userWallet = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(secret));
-const userWalletSigner = createSignerFromKeypair(umi, userWallet);
+export async function mintCoin(params: MintCoinParams): Promise<string> {
+  const { walletAdapter, publicKey, tokenMetadata, amount } = params;
 
-umi.use(signerIdentity(userWalletSigner));
-umi.use(mplTokenMetadata());
+  // Initialize Umi with the user's wallet
+  const umi = createUmi(process.env.NEXT_PUBLIC_RPC_ENDPOINT!);
+  umi.use(walletAdapterIdentity(walletAdapter));
+  umi.use(mplTokenMetadata());
 
-export async function mintCoin(name: string, symbol: string, uri: string, recipient: string) {
+  // Generate a new mint account
   const mint = generateSigner(umi);
 
-  try {
-    await createAndMint(umi, {
-      mint,
-      authority: umi.identity,
-      name,
-      symbol,
-      uri,
-      sellerFeeBasisPoints: percentAmount(0),
-      decimals: 8,
-      amount: 1000000_00000000,
-      tokenOwner: recipient as any,
-      tokenStandard: TokenStandard.Fungible,
-    }).sendAndConfirm(umi);
+  // Perform the minting operation
+  await createAndMint(umi, {
+    mint,
+    authority: umi.identity,
+    name: tokenMetadata.name,
+    symbol: tokenMetadata.symbol,
+    uri: tokenMetadata.uri,
+    sellerFeeBasisPoints: percentAmount(0), // No seller fee
+    decimals: 8,
+    amount,
+    tokenOwner: publicKey as any,
+    tokenStandard: TokenStandard.Fungible,
+  }).sendAndConfirm(umi);
 
-    console.log("Successfully minted 1 million tokens (", mint.publicKey, ")");
-    return { success: true, mintAddress: mint.publicKey.toString() };
-  } catch (error) {
-    console.error("Error minting tokens:", error);
-    return { success: false, error: (error as any).message };
-  }
+  // Return the mint address as a string
+  return mint.publicKey.toString();
 }
