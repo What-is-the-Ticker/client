@@ -55,7 +55,7 @@ export default function RootLayout({
       <body>
         <NextThemesProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
