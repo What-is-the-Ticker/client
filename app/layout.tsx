@@ -9,6 +9,7 @@ import BackgroundWrapper from "@/components/context/backgroundWrapper";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 // import 'react-toastify/dist/ReactToastify.min.css'; // minified version
+import { WalletProviders } from "@/components/context/walletProvider";
 import SolanaWalletProvider from "@/components/context/solanaProvider";
 
 const geistSans = localFont({
@@ -59,16 +60,18 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemeProvider>
-            <SolanaWalletProvider>
-              <BackgroundWrapper>
-                <ToastContainer />
-                <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                  <Header />
-                  {/* <SideBar /> */}
-                  {children}
-                </main>
-              </BackgroundWrapper>
-            </SolanaWalletProvider>
+            <WalletProviders>
+              <SolanaWalletProvider>
+                <BackgroundWrapper>
+                  <ToastContainer />
+                  <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                    <Header />
+                    {/* <SideBar /> */}
+                    {children}
+                  </main>
+                </BackgroundWrapper>
+              </SolanaWalletProvider>
+            </WalletProviders>
           </ThemeProvider>
         </NextThemesProvider>
       </body>
