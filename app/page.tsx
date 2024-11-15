@@ -3,29 +3,40 @@
 import Image from "next/image";
 import { useState } from "react";
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
-import TokenCreator from "@/components/TokenCreator";
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
   const [message, setMessage] = useState('');
+  const { publicKey, sendTransaction } = useWallet();
+
+  // Hardcoded for now
+  const tokenMetadata = {
+    name: 'Mama',
+    symbol: 'MEM',
+    description: 'MAMEM',
+  }
 
   const handleMint = async () => {
+    if (!publicKey) {
+      setMessage('Please connect your wallet');
+      return;
+    }
+
     setIsMinting(true);
     setMessage('Minting coin...');
-
-    const name = "test0"; //test
-    const symbol = "TST";
-    const description = "This is a dynamically generated meme coin.";
 
     try {
       const response = await fetch('/api/mint', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, symbol, description }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: tokenMetadata.name,
+          symbol: tokenMetadata.symbol,
+          description: tokenMetadata.description,
+          recipient: publicKey.toBase58()
+        }),
       });
-
       const result = await response.json();
 
       if (result.success) {
@@ -69,11 +80,9 @@ export default function Home() {
       <WalletMultiButton />
       <WalletDisconnectButton />
 
-      {/* <TokenCreator /> */}
-
       <div>
         <h1>Mint Your Meme Coin</h1>
-        <button onClick={handleMint} disabled={isMinting}>
+        <button onClick={handleMint} disabled={isMinting || !publicKey}>
           {isMinting ? 'Minting...' : 'Mint Coin'}
         </button>
         <p>{message}</p>

@@ -1,9 +1,10 @@
 // mint.ts
-import { percentAmount, generateSigner, signerIdentity, createSignerFromKeypair } from "@metaplex-foundation/umi";
+import { percentAmount, generateSigner, signerIdentity, createSignerFromKeypair, Pda } from "@metaplex-foundation/umi";
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import secret from "@/lib/solana/guideSecret.json";
 import dotenv from "dotenv";
+import { PublicKey } from "@solana/web3.js";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const userWalletSigner = createSignerFromKeypair(umi, userWallet);
 umi.use(signerIdentity(userWalletSigner));
 umi.use(mplTokenMetadata());
 
-export async function mintCoin(name: string, symbol: string, uri: string) {
+export async function mintCoin(name: string, symbol: string, uri: string, recipient: string) {
   const mint = generateSigner(umi);
 
   try {
@@ -34,7 +35,7 @@ export async function mintCoin(name: string, symbol: string, uri: string) {
       sellerFeeBasisPoints: percentAmount(0),
       decimals: 8,
       amount: 1000000_00000000,
-      tokenOwner: userWallet.publicKey,
+      tokenOwner: recipient as any,
       tokenStandard: TokenStandard.Fungible,
     }).sendAndConfirm(umi);
 

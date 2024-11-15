@@ -4,7 +4,7 @@ import { mintCoin } from "@/lib/solana/mint";
 import { uploadMetadataToPinata } from "@/lib/uploadToPinata";
 
 export async function POST(request: Request) {
-  const { name, symbol, description } = await request.json();
+  const { name, symbol, description, recipient } = await request.json();
 
   try {
     // Upload metadata to Pinata and get the IPFS hash
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const metadataUri = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
 
     // Mint the coin with the dynamically generated metadata URI
-    const result = await mintCoin(name, symbol, metadataUri);
+    const result = await mintCoin(name, symbol, metadataUri, recipient);
 
     return NextResponse.json({ success: true, mintAddress: result.mintAddress });
   } catch (error) {
