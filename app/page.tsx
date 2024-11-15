@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import OrbitingCircles from "@/components/ui/orbiting-circles";
 import SparklesText from "@/components/ui/sparkles-text";
 import { RainbowButton } from "@/components/ui/rainbow-button";
+import { ThemeToggle } from "@/components/themeToggle/ThemeToggle";
 import Image from "next/image";
 
 export default function Home() {
@@ -134,6 +135,9 @@ export default function Home() {
             </Button>
           </CoolMode>
           <p>{message}</p>
+        </div>
+        <div className="fixed bottom-8 right-8">
+          <ThemeToggle />
         </div>
       </div>
     </main>

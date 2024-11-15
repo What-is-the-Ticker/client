@@ -10,7 +10,7 @@ import { availableThemeColors } from '@/lib/themeColors';
 import { cn } from '@/lib/utils';
 
 type ThemeToggleProps = {
-  expanded: boolean;
+  expanded?: boolean;
 };
 
 export function ThemeToggle({ expanded }: ThemeToggleProps) {
