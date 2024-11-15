@@ -4,6 +4,7 @@ import { useState } from "react";
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { mintCoin } from "@/lib/solana/mint";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 
 export default function Home() {
@@ -98,6 +99,8 @@ export default function Home() {
 
       <WalletMultiButton />
       <WalletDisconnectButton />
+
+      <ConnectButton />
 
       <div>
         <h1>Mint Your Meme Coin</h1>
