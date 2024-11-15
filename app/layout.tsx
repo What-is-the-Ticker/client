@@ -63,8 +63,8 @@ export default function RootLayout({
               <BackgroundWrapper>
                 <ToastContainer />
                 <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                  {/* <Header /> */}
-                  <SideBar />
+                  <Header />
+                  {/* <SideBar /> */}
                   {children}
                 </main>
               </BackgroundWrapper>
