@@ -16,14 +16,41 @@ import Image from "next/image";
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
   const [message, setMessage] = useState('');
+  const [aiResponse, setAiResponse] = useState<{ name: string; ticker: string } | null>(null); // State to store AI response
   const { publicKey, wallet } = useWallet();
 
-  // Hardcoded for now
   const tokenMetadata = {
     name: 'Maaaaaaaaaaama',
     symbol: 'MEMR',
     description: 'MAMEM',
-  }
+  };
+
+  const fetchTicker = async () => {
+    setMessage("Calling AI to generate ticker...");
+    try {
+      const response = await fetch('/api/generate-ticker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          words: ['crypto', 'venture', 'space'], // Example input for now
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAiResponse(data.data);
+        setMessage("AI response received!");
+      } else {
+        console.error("AI API Error:", data.error);
+        setMessage("AI failed to generate a response.");
+      }
+    } catch (error) {
+      console.error("Error fetching ticker:", error);
+      setMessage("An error occurred while fetching the ticker.");
+    }
+  };
+
 
   const handleMint = async () => {
     if (!publicKey || !wallet) {
@@ -35,7 +62,6 @@ export default function Home() {
     setMessage('Uploading metadata...');
 
     try {
-      // Upload metadata via server
       const response = await fetch('/api/upload-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,13 +81,11 @@ export default function Home() {
 
       const metadataUri = result.metadataUri;
 
-      // Prepare token metadata with the URI
       const fullTokenMetadata = {
         ...tokenMetadata,
         uri: metadataUri,
       };
 
-      // Mint the coin using the auxiliary function
       const mintAddress = await mintCoin({
         walletAdapter: wallet.adapter,
         publicKey,
@@ -127,14 +151,17 @@ export default function Home() {
               size: 60,
             }}
           >
-            {/* <Button onClick={handleMint} disabled={isMinting || !publicKey}>{isMinting ? 'Minting...' : 'Mint Coin'}</Button> */}
-            <Button className="bg-transparent shadow-none hover:bg-none hover:bg-transparent p-0 focus:bg-none active:bg-none border-none outline-none">
-              <RainbowButton onClick={() => console.log("saas")}>
-                DISCOVER NOW!
-              </RainbowButton>
-            </Button>
+            <RainbowButton onClick={fetchTicker}>
+              Test AI
+            </RainbowButton>
           </CoolMode>
           <p>{message}</p>
+          {aiResponse && (
+            <div className="mt-4 text-center">
+              <p><strong>Name:</strong> {aiResponse.name}</p>
+              <p><strong>Ticker:</strong> {aiResponse.ticker}</p>
+            </div>
+          )}
         </div>
         <div className="fixed bottom-8 right-8">
           <ThemeToggle />
