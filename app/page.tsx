@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -13,16 +13,79 @@ import { ThemeToggle } from "@/components/themeToggle/ThemeToggle";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { mintCoin } from "@/lib/solana/mint";
 import Image from "next/image";
 import { Wallet, ExternalLink } from 'lucide-react';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
+import { toast } from 'react-toastify';
 
 export default function Home() {
   const [message, setMessage] = useState('');
   const [aiResponse, setAiResponse] = useState<{ name: string; ticker: string } | null>(null);
-  const { publicKey, wallet, connected: solanaConnected } = useWallet();
+  const { publicKey, wallet: solanaAddress, connected: solanaConnected } = useWallet();
+  const [isMinting, setIsMinting] = useState(false);
+  const publicClient = usePublicClient();
   const { address: ethereumAddress, isConnected: ethereumConnected } = useAccount();
+
+  // Hardcoded for now
+  const tokenMetadata = {
+    name: 'Maaaaaaaaaaama',
+    symbol: 'MEMR',
+    description: 'MAMEM',
+  }
+
+  const handleMint = async () => {
+    if (!publicKey || !solanaAddress) {
+      setMessage('Please connect your wallet');
+      return;
+    }
+
+    setIsMinting(true);
+    setMessage('Uploading metadata...');
+
+    try {
+      // Upload metadata via server
+      const response = await fetch('/api/upload-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: tokenMetadata.name,
+          symbol: tokenMetadata.symbol,
+          description: tokenMetadata.description,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setMessage(`Failed to upload metadata: ${result.error}`);
+        return;
+      }
+
+      const metadataUri = result.metadataUri;
+
+      // Prepare token metadata with the URI
+      const fullTokenMetadata = {
+        ...tokenMetadata,
+        uri: metadataUri,
+      };
+
+      // Mint the coin using the auxiliary function
+      const mintAddress = await mintCoin({
+        walletAdapter: solanaAddress.adapter,
+        publicKey,
+        tokenMetadata: fullTokenMetadata,
+        amount: 1000000_00000000,
+      });
+
+      setMessage(`Coin minted successfully! Mint Address: ${mintAddress}`);
+    } catch (error) {
+      console.error('Minting failed:', error);
+      setMessage('Failed to mint the coin.');
+    } finally {
+      setIsMinting(false);
+    }
+  };
 
   const fetchTicker = async () => {
     setMessage("Calling AI to generate ticker...");
@@ -49,6 +112,29 @@ export default function Home() {
       setMessage("An error occurred while fetching the ticker.");
     }
   };
+
+  // implement soon
+  // Use effect to watch for contract events
+  useEffect(() => {
+    if (!ethereumAddress || !publicClient) return;
+
+    // Start watching the contract event
+    const unwatch = publicClient.watchContractEvent({
+      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // LAYER Contract address
+      abi: contractAbi, // Contract ABI
+      eventName: 'Transfer',
+      args: { to: ethereumAddress },
+      onLogs: (logs) => {
+        console.log('Layer Response!', logs);
+        toast.success('Layer Response!');
+      },
+    });
+
+    // Cleanup function to unwatch when component unmounts or address changes
+    return () => {
+      unwatch();
+    };
+  }, [ethereumAddress, publicClient]);
 
   return (
     <main className="flex h-[90vh] flex-col items-center justify-between p-24">
