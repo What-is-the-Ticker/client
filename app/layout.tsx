@@ -3,8 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import ThemeProvider from "@/components/context/themeProvider";
-import { Header } from "@/components/Header";
-import { SideBar } from "@/components/SideBar";
 import BackgroundWrapper from "@/components/context/backgroundWrapper";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -27,11 +25,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "whatistheticker",
-  description: "whatistheticker",
+  title: "Witt",
+  description: "what is the ticker",
   openGraph: {
-    title: "whatistheticker",
-    description: "whatistheticker",
+    title: "Witt",
+    description: "what is the ticker",
     images: [{ url: "/og-image.jpg" }],
   },
 };
@@ -65,8 +63,6 @@ export default function RootLayout({
                 <BackgroundWrapper>
                   <ToastContainer />
                   <main className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                    <Header />
-                    {/* <SideBar /> */}
                     {children}
                   </main>
                 </BackgroundWrapper>

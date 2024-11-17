@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from "react";
-import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { mintCoin } from "@/lib/solana/mint";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { CoolMode } from "@/components/ui/cool-mode";
 import { Button } from "@/components/ui/button";
@@ -11,19 +10,19 @@ import OrbitingCircles from "@/components/ui/orbiting-circles";
 import SparklesText from "@/components/ui/sparkles-text";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { ThemeToggle } from "@/components/themeToggle/ThemeToggle";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { Wallet, ExternalLink } from 'lucide-react';
+import { useAccount } from 'wagmi';
 
 export default function Home() {
-  const [isMinting, setIsMinting] = useState(false);
   const [message, setMessage] = useState('');
-  const [aiResponse, setAiResponse] = useState<{ name: string; ticker: string } | null>(null); // State to store AI response
-  const { publicKey, wallet } = useWallet();
-
-  const tokenMetadata = {
-    name: 'Maaaaaaaaaaama',
-    symbol: 'MEMR',
-    description: 'MAMEM',
-  };
+  const [aiResponse, setAiResponse] = useState<{ name: string; ticker: string } | null>(null);
+  const { publicKey, wallet, connected: solanaConnected } = useWallet();
+  const { address: ethereumAddress, isConnected: ethereumConnected } = useAccount();
 
   const fetchTicker = async () => {
     setMessage("Calling AI to generate ticker...");
@@ -32,7 +31,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          words: ['crypto', 'venture', 'space'], // Example input for now
+          words: ['crypto', 'venture', 'space'],
         }),
       });
 
@@ -51,63 +50,51 @@ export default function Home() {
     }
   };
 
-
-  const handleMint = async () => {
-    if (!publicKey || !wallet) {
-      setMessage('Please connect your wallet');
-      return;
-    }
-
-    setIsMinting(true);
-    setMessage('Uploading metadata...');
-
-    try {
-      const response = await fetch('/api/upload-metadata', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: tokenMetadata.name,
-          symbol: tokenMetadata.symbol,
-          description: tokenMetadata.description,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        setMessage(`Failed to upload metadata: ${result.error}`);
-        return;
-      }
-
-      const metadataUri = result.metadataUri;
-
-      const fullTokenMetadata = {
-        ...tokenMetadata,
-        uri: metadataUri,
-      };
-
-      const mintAddress = await mintCoin({
-        walletAdapter: wallet.adapter,
-        publicKey,
-        tokenMetadata: fullTokenMetadata,
-        amount: 1000000_00000000,
-      });
-
-      setMessage(`Coin minted successfully! Mint Address: ${mintAddress}`);
-    } catch (error) {
-      console.error('Minting failed:', error);
-      setMessage('Failed to mint the coin.');
-    } finally {
-      setIsMinting(false);
-    }
-  };
-
   return (
     <main className="flex h-[90vh] flex-col items-center justify-between p-24">
+      <div className="fixed top-4 right-4 z-50">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full w-12 h-12">
+              <Wallet className="h-6 w-6" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0">
+            <Tabs defaultValue="ethereum" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="ethereum">Ethereum</TabsTrigger>
+                <TabsTrigger value="solana">Solana</TabsTrigger>
+              </TabsList>
+              <TabsContent value="ethereum" className="p-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ethereum Wallet</CardTitle>
+                    <CardDescription>Connect your Ethereum wallet</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ConnectButton />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="solana" className="p-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Solana Wallet</CardTitle>
+                    <CardDescription>Connect your Solana wallet</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <WalletMultiButton className="!bg-primary hover:!bg-primary/90 text-primary-foreground w-full justify-center" />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-transparent">
         <SparklesText sparklesCount={8} className="pointer-events-none whitespace-pre-wrap text-center text-8xl font-semibold leading-none" text="What Is The Ticker ?" />
 
-        {/* Inner Circles */}
         <OrbitingCircles
           className="size-[30px] border-none bg-transparent"
           duration={20}
@@ -125,11 +112,10 @@ export default function Home() {
           <Image className='rounded-full' src="/coins/PEPE.jpg" alt="PEPE Logo" width={30} height={30} />
         </OrbitingCircles>
 
-        {/* Outer Circles (reverse) */}
         <OrbitingCircles
           className="size-[50px] border-none bg-transparent"
           radius={190}
-          duration={20}
+          duration={18}
           reverse
         >
           <Image className='rounded-full' src="/coins/PNUT.jpg" alt="PNUT Logo" width={50} height={50} />
@@ -137,7 +123,7 @@ export default function Home() {
         <OrbitingCircles
           className="size-[50px] border-none bg-transparent"
           radius={190}
-          duration={20}
+          duration={18}
           delay={20}
           reverse
         >
