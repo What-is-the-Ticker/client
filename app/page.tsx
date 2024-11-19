@@ -18,6 +18,12 @@ import Image from "next/image";
 import { Wallet, ExternalLink } from 'lucide-react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { toast } from 'react-toastify';
+// import contractAbi from ''; // Import the contract ABI here
+
+// Hardcoded for now
+const contractAbi:any = [
+  // Contract ABI
+];
 
 export default function Home() {
   const [message, setMessage] = useState('');
@@ -34,42 +40,75 @@ export default function Home() {
     description: 'MAMEM',
   }
 
-  const handleMint = async () => {
+  // Backend computation trigger (eigen + layer)
+  const triggerComputation = async () => {
+    toast.info('Requesting computation from backend...');
+    try {
+      const response = await fetch('/api/compute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Include any data your backend needs
+          words: ['crypto', 'venture', 'space'], // Example data that I used for my generate-ticker api
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (result.success) {
+        toast.success('Backend computation initiated successfully!');
+        // Optionally, you can set some state here if needed
+      } else {
+        toast.error(`Backend computation failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error requesting computation:', error);
+      toast.error('Failed to request computation from backend.');
+    }
+  };
+  
+  const handleMint = async (name:string, ticker:string) => {
     if (!publicKey || !solanaAddress) {
-      setMessage('Please connect your wallet');
+      toast.error('Please connect your Solana wallet.');
       return;
     }
-
+  
     setIsMinting(true);
-    setMessage('Uploading metadata...');
-
+    const toastId = toast.loading('Uploading metadata...');
+  
     try {
       // Upload metadata via server
       const response = await fetch('/api/upload-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: tokenMetadata.name,
-          symbol: tokenMetadata.symbol,
-          description: tokenMetadata.description,
+          name: name,
+          symbol: ticker,
+          description: 'Generated token',
         }),
       });
-
+  
       const result = await response.json();
-
+  
       if (!result.success) {
-        setMessage(`Failed to upload metadata: ${result.error}`);
+        toast.update(toastId, {
+          render: `Failed to upload metadata: ${result.error}`,
+          type: 'error',
+          isLoading: false,
+          autoClose: 5000,
+        });
         return;
       }
-
+  
       const metadataUri = result.metadataUri;
-
+  
       // Prepare token metadata with the URI
       const fullTokenMetadata = {
-        ...tokenMetadata,
+        name,
+        symbol: ticker,
         uri: metadataUri,
       };
-
+  
       // Mint the coin using the auxiliary function
       const mintAddress = await mintCoin({
         walletAdapter: solanaAddress.adapter,
@@ -77,16 +116,27 @@ export default function Home() {
         tokenMetadata: fullTokenMetadata,
         amount: 1000000_00000000,
       });
-
-      setMessage(`Coin minted successfully! Mint Address: ${mintAddress}`);
+  
+      toast.update(toastId, {
+        render: `Coin minted successfully! Mint Address: ${mintAddress}`,
+        type: 'success',
+        isLoading: false,
+        autoClose: 5000,
+      });
     } catch (error) {
       console.error('Minting failed:', error);
-      setMessage('Failed to mint the coin.');
+      toast.update(toastId, {
+        render: 'Failed to mint the coin.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 5000,
+      });
     } finally {
       setIsMinting(false);
     }
-  };
+  }; 
 
+  // openai api call
   const fetchTicker = async () => {
     setMessage("Calling AI to generate ticker...");
     try {
@@ -113,24 +163,24 @@ export default function Home() {
     }
   };
 
-  // implement soon
-  // Use effect to watch for contract events
+  // Watch for contract events
   useEffect(() => {
     if (!ethereumAddress || !publicClient) return;
 
-    // Start watching the contract event
     const unwatch = publicClient.watchContractEvent({
-      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // LAYER Contract address
-      abi: contractAbi, // Contract ABI
-      eventName: 'Transfer',
-      args: { to: ethereumAddress },
+      address: '0x',
+      abi: contractAbi,
+      eventName: 'functionName',
       onLogs: (logs) => {
-        console.log('Layer Response!', logs);
-        toast.success('Layer Response!');
+        console.log('Contract Response!', logs);
+        toast.success('Contract computation completed!');
+
+        const { name, ticker } = (logs[0] as any).args; // Assuming the event has name and ticker, if not, carteation is necessary
+
+        handleMint(name, ticker);
       },
     });
 
-    // Cleanup function to unwatch when component unmounts or address changes
     return () => {
       unwatch();
     };
@@ -223,8 +273,8 @@ export default function Home() {
               size: 60,
             }}
           >
-            <RainbowButton onClick={fetchTicker}>
-              Test AI
+            <RainbowButton onClick={triggerComputation}>
+              Test
             </RainbowButton>
           </CoolMode>
           <p>{message}</p>
